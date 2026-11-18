@@ -6,7 +6,7 @@ const StoreContext = createContext(null);
 
 export function formatPrice(amount) {
   if (amount == null) return '';
-  return `$${Number(amount).toFixed(amount % 1 === 0 ? 0 : 2)}`;
+  return `₹${Number(amount).toFixed(amount % 1 === 0 ? 0 : 2)}`;
 }
 
 export function getProductImage(product) {

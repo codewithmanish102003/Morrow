@@ -60,7 +60,7 @@ export default function Header() {
   return (
     <>
       <div className="announcement">
-        COMPLIMENTARY SHIPPING ON ORDERS OVER $100 <span>✳</span> A LITTLE MORE TO LOVE, EVERY DAY
+        COMPLIMENTARY SHIPPING ON ORDERS OVER ₹100 <span>✳</span> A LITTLE MORE TO LOVE, EVERY DAY
       </div>
 
       <header className={`site-header ${isScrolled ? 'is-scrolled' : ''}`}>

@@ -25,11 +25,22 @@ import OrderTracking from './pages/OrderTracking';
 import NotFound from './pages/NotFound';
 
 function ScrollToTop() {
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname, search]);
+    if (hash) {
+      setTimeout(() => {
+        const id = hash.replace('#', '');
+        const el = document.getElementById(id);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+      }, 60);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, search, hash]);
 
   return null;
 }

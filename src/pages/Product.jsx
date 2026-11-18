@@ -215,7 +215,7 @@ export default function Product() {
 
           <div className="detail-perks">
             <span>
-              <Truck size={19} /> Complimentary shipping over $100
+              <Truck size={19} /> Complimentary shipping over ₹100
             </span>
             <span>
               <RotateCcw size={19} /> Easy 30-day returns

@@ -77,17 +77,11 @@ export default function OrderSuccess() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-        <Link
-          to={`/order-tracking`}
-          className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 text-xs font-bold tracking-widest uppercase rounded hover:opacity-90 transition-opacity"
-        >
+      <div className="success-actions">
+        <Link to="/order-tracking" className="success-btn-primary">
           <Package size={15} /> Track this order
         </Link>
-        <Link
-          to="/shop"
-          className="inline-flex items-center gap-2 border border-border px-6 py-3 text-xs font-bold tracking-widest uppercase rounded hover:border-foreground transition-colors"
-        >
+        <Link to="/shop" className="success-btn-secondary">
           Continue shopping <ArrowRight size={14} />
         </Link>
       </div>
