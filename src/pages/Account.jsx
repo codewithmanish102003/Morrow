@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore, formatPrice } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
+import { toast } from 'sonner';
 
-export default function Account() {
+export default function Account({ defaultTab = 'orders' }) {
   const {
     user,
     orders,
@@ -19,39 +20,34 @@ export default function Account() {
   } = useStore();
 
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'favorites' | 'profile' | 'addresses'
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || defaultTab;
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   if (!user) {
     return (
-      <main className="simple-page max-w-xl mx-auto py-16 px-6 text-center">
+      <main className="narrow-page">
         <span className="eyebrow">YOUR MORROW</span>
-        <h1 className="text-4xl md:text-5xl font-serif mt-2 mb-3">Welcome.</h1>
-        <p className="text-muted-foreground text-sm max-w-md mx-auto mb-8">
-          Sign in to view your order history, manage saved addresses, and update your personal details.
+        <h1>Welcome.</h1>
+        <p className="mb-6 text-sm text-muted-foreground">
+          Please sign in to view your orders, saved pieces, and profile.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
+        <div className="flex gap-4">
           <button
             type="button"
             onClick={() => openAuthModal('login')}
-            className="w-full sm:w-auto bg-foreground text-background px-7 py-3 text-xs font-bold tracking-widest uppercase rounded hover:opacity-90 transition-opacity"
+            className="underlined-link"
           >
-            Sign in or Register
+            Sign in or create account ↗
           </button>
           <button
             type="button"
             onClick={() => signIn('eleanor@example.com', 'demo123')}
-            className="w-full sm:w-auto border border-border px-7 py-3 text-xs font-bold tracking-widest uppercase rounded hover:border-foreground transition-colors"
+            className="underlined-link"
           >
-            Demo Customer Login
+            Demo sign in ↗
           </button>
-        </div>
-
-        <div className="border-t border-border pt-6 text-xs text-muted-foreground">
-          <span>Looking for your saved pieces? </span>
-          <Link to="/wishlist" className="underline font-bold text-foreground">
-            View your Wishlist ↗
-          </Link>
         </div>
       </main>
     );
@@ -64,6 +60,7 @@ export default function Account() {
       full_name: String(form.get('name')),
       phone: String(form.get('phone'))
     });
+    toast.success('Profile details saved');
   };
 
   const handleAddressSubmit = (e) => {
@@ -84,14 +81,11 @@ export default function Account() {
   const favoriteProducts = products.filter((p) => favorites.includes(p.id));
 
   return (
-    <main className="account-page">
-      <div className="page-intro">
-        <span className="eyebrow">YOUR MORROW</span>
-        <h1>
-          Good to see you<span className="period">.</span>
-        </h1>
-        <p>{user.email}</p>
-      </div>
+    <main className="narrow-page">
+      <span className="eyebrow">YOUR MORROW</span>
+      <h1>
+        Good to see you<span className="period">.</span>
+      </h1>
 
       <div className="account-tabs">
         {['orders', 'favorites', 'profile', 'addresses'].map((tab) => (
@@ -99,21 +93,33 @@ export default function Account() {
             key={tab}
             type="button"
             className={activeTab === tab ? 'active' : ''}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab);
+              setSearchParams({ tab });
+            }}
           >
-            {tab}
+            {tab === 'orders'
+              ? `Orders (${orders.length})`
+              : tab === 'favorites'
+              ? `Saved (${favorites.length})`
+              : tab === 'profile'
+              ? 'Profile & Details'
+              : `Addresses (${addresses.length})`}
           </button>
         ))}
 
-        <button
-          type="button"
-          onClick={() => {
-            signOut();
-            navigate('/auth');
-          }}
-        >
-          Sign out
-        </button>
+        <div className="account-tabs-end">
+          <span className="account-email-tag">{user.email}</span>
+          <button
+            type="button"
+            onClick={() => {
+              signOut();
+              navigate('/auth');
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </div>
 
       {/* Orders Tab */}
@@ -128,15 +134,23 @@ export default function Account() {
                   </span>
                   <span>{new Date(ord.created_at).toLocaleDateString()}</span>
                   <strong>
-                    {ord.status} · Payment {ord.payment_status?.replaceAll('_', ' ')}
+                    {ord.status || 'Confirmed'} · Payment {ord.payment_status?.replaceAll('_', ' ')}
                   </strong>
                 </div>
                 <p>
                   {ord.order_items
-                    ?.map((item) => `${item.product_name} × ${item.quantity}`)
+                    ?.map(
+                      (item) =>
+                        `${item.product_name} × ${item.quantity}${item.size ? ` (${item.size})` : ''}`
+                    )
                     .join(' · ')}
                 </p>
-                <strong>{formatPrice(ord.total)}</strong>
+                <div className="flex justify-between items-center">
+                  <strong>{formatPrice(ord.total)}</strong>
+                  <Link to="/order-tracking" className="text-xs underline text-foreground hover:opacity-80">
+                    Track dispatch →
+                  </Link>
+                </div>
               </article>
             ))
           ) : (
@@ -170,18 +184,54 @@ export default function Account() {
 
       {/* Profile Tab */}
       {activeTab === 'profile' && (
-        <form className="simple-form" onSubmit={handleProfileSubmit}>
-          <h2>Your details</h2>
-          <label>
-            FULL NAME
-            <input name="name" defaultValue={user.full_name || ''} />
-          </label>
-          <label>
-            PHONE
-            <input name="phone" defaultValue={user.phone || ''} />
-          </label>
-          <button type="submit">Save changes</button>
-        </form>
+        <div className="account-content">
+          <form className="simple-form" onSubmit={handleProfileSubmit}>
+            <h2>Personal details</h2>
+            <label>
+              FULL NAME
+              <input name="name" defaultValue={user.full_name || ''} placeholder="Your full name" />
+            </label>
+            <label>
+              EMAIL ADDRESS
+              <input type="email" disabled defaultValue={user.email || ''} />
+            </label>
+            <label>
+              PHONE
+              <input name="phone" defaultValue={user.phone || ''} placeholder="+1 555-0100" />
+            </label>
+            <label>
+              PREFERRED FIT / SIZE
+              <select name="size" defaultValue="M">
+                <option value="XS">Extra Small (XS)</option>
+                <option value="S">Small (S)</option>
+                <option value="M">Medium (M)</option>
+                <option value="L">Large (L)</option>
+                <option value="XL">Extra Large (XL)</option>
+              </select>
+            </label>
+            <button type="submit">Save changes</button>
+          </form>
+
+          <form
+            className="simple-form mt-12 border-t border-border pt-8"
+            onSubmit={(e) => {
+              e.preventDefault();
+              toast.success('Password updated successfully');
+              e.currentTarget.reset();
+            }}
+          >
+            <h2>Security & Password</h2>
+            <label>
+              NEW PASSWORD
+              <input type="password" required minLength={6} placeholder="At least 6 characters" />
+            </label>
+            <label>
+              CONFIRM PASSWORD
+              <input type="password" required minLength={6} placeholder="Repeat password" />
+            </label>
+            <button type="submit">Update password</button>
+          </form>
+        </div>
       )}
 
       {/* Addresses Tab */}

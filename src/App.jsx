@@ -50,6 +50,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/profile" element={<Account defaultTab="profile" />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
